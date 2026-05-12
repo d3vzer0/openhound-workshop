@@ -47,8 +47,6 @@ def _(mo):
     - Add a DLT resource
     - Add a DLT transformer
     - Use DLT's REST client pagination
-    - Run a small DLT pipeline locally
-    - Inspect the collected Pokemon detail records
     """)
     return
 
