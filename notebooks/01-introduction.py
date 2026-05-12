@@ -57,8 +57,8 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Collecting Pokemons
-    Lets start with performing manual Pokemon collection using the requests library. We'll limit the amount of Pokemons to a 100. Try running the cells below and inspect the output.
+    ## Collecting Pokemon
+    Lets start with performing manual Pokemon collection using the requests library. We'll limit the amount of Pokemon to a 100. Try running the cells below and inspect the output.
     """)
     return
 
@@ -67,7 +67,7 @@ def _(mo):
 def cell_list_pokemon(requests):
     POKEMON_PAGE_URL = "https://pokeapi.co/api/v2/pokemon"
 
-    def list_pokemons(url: str) -> dict:
+    def list_pokemon(url: str) -> dict:
         request = requests.get(
             url,
             params={"limit": 100, "offset": 0},
@@ -75,7 +75,7 @@ def cell_list_pokemon(requests):
         )
         return request.json()
 
-    pokemon_page = list_pokemons(POKEMON_PAGE_URL)
+    pokemon_page = list_pokemon(POKEMON_PAGE_URL)
     return POKEMON_PAGE_URL, pokemon_page
 
 
@@ -93,7 +93,7 @@ def _(mo, pokemon_page):
 
     | Field | Value | Description |
     |---|---|---|
-    | `count` | `{pokemon_page["count"]}` | The total amounf of Pokemons in the DB|
+    | `count` | `{pokemon_page["count"]}` | The total amounf of Pokemon in the DB|
     | `next` | `{pokemon_page["next"]}` | The url to fetch the next page |
     | `previous` | `{pokemon_page["previous"]}` | The previous page which is None, since this is our first request|
     | `results` | `{len(pokemon_page["results"])}` records in this page | The amount of records in the current request|
@@ -161,14 +161,14 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ## Exercise 2
-    Try to collect all pokemons by creating the paginate_pokemons function. Here is a modified example to get started, fill in the "TODO" placeholders based on the pagination description mentioned previously.
+    Try to collect all Pokemon by creating the paginate_pokemon function. Here is a modified example to get started, fill in the "TODO" placeholders based on the pagination description mentioned previously.
     """)
     return
 
 
 @app.cell
 def _(requests):
-    def paginate_pokemons(url: str) -> list[dict]:
+    def paginate_pokemon(url: str) -> list[dict]:
         pokemon = []
         next_url = url
 
@@ -180,24 +180,24 @@ def _(requests):
             page = response.json()
             pokemon.extend(
                 page["TODO"]
-            )  # Replace TODO will the field containing the list of pokemons
+            )  # Replace TODO will the field containing the list of pokemon
             next_url = page[
                 "TODO"
             ]  # Replace TODO will the field containing the next page
         return pokemon
 
-    return (paginate_pokemons,)
+    return (paginate_pokemon,)
 
 
 @app.cell
-def _(POKEMON_PAGE_URL, paginate_pokemons):
-    all_pokemons = paginate_pokemons(POKEMON_PAGE_URL)
-    return (all_pokemons,)
+def _(POKEMON_PAGE_URL, paginate_pokemon):
+    all_pokemon = paginate_pokemon(POKEMON_PAGE_URL)
+    return (all_pokemon,)
 
 
 @app.cell(hide_code=True)
-def _(all_pokemons, pl):
-    pl.DataFrame(all_pokemons)
+def _(all_pokemon, pl):
+    pl.DataFrame(all_pokemon)
     return
 
 
@@ -205,18 +205,18 @@ def _(all_pokemons, pl):
 def _(mo):
     mo.md(r"""
     ## Exercise 3
-    We have succesfully collected all Pokemons but are still missing the Pokemon details. Finalize the `collect_pokemon_details` function to collect the pokemon details.
+    We have succesfully collected all Pokemon but are still missing the Pokemon details. Finalize the `collect_pokemon_details` function to collect the pokemon details.
     """)
     return
 
 
 @app.cell
 def _(requests):
-    def collect_pokemon_details(pokemons: list) -> list[dict]:
+    def collect_pokemon_details(pokemon: list) -> list[dict]:
         pokemon_details = []
-        for pokemon in pokemons:
+        for poke in pokemon:
             # Replace TODO will the field containing the URL for the pokemon details
-            response = requests.get(pokemon["TODO"]).json()
+            response = requests.get(poke["TODO"]).json()
             pokemon_details.append(response)
         return pokemon_details
 
@@ -224,8 +224,8 @@ def _(requests):
 
 
 @app.cell
-def _(all_pokemons, collect_pokemon_details):
-    pokemon_details = collect_pokemon_details(all_pokemons[:2])
+def _(all_pokemon, collect_pokemon_details):
+    pokemon_details = collect_pokemon_details(all_pokemon[:2])
     return (pokemon_details,)
 
 
@@ -240,7 +240,7 @@ def _(mo):
     mo.md(r"""
     ## Wrapping up
 
-    Pagination works differently across APIs and you may have noticed that collecting all Pokemon details may take some time; we need to perform an additional request for each of the 1000+ Pokemons. Instead of developing custom clients or collectors for every API, DLT provides a built-in RESTClient that automatically handles pagination, rate limiting and parallelization.
+    Pagination works differently across APIs and you may have noticed that collecting all Pokemon details may take some time; we need to perform an additional request for each of the 1000+ Pokemon. Instead of developing custom clients or collectors for every API, DLT provides a built-in RESTClient that automatically handles pagination, rate limiting and parallelization.
 
     Before we re-implement our Pokemon collector, let’s first take a look at data validation. After this introduction, the workshop will continue with the basics of Pydantic to validate API responses.
     """)
