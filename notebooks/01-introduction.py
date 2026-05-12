@@ -151,8 +151,8 @@ def _(mo):
 
     Example pages:
 
-    - First page: `https://pokeapi.co/api/v2/pokemon?limit=10&offset=0` |
-    - Second page : `https://pokeapi.co/api/v2/pokemon?limit=10&offset=10` |
+    - First page: `https://pokeapi.co/api/v2/pokemon?limit=10&offset=0`
+    - Second page : `https://pokeapi.co/api/v2/pokemon?limit=10&offset=10`
     """)
     return
 
