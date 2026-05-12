@@ -167,7 +167,7 @@ def _(mo):
 @app.cell
 def _(BaseModel, ConfigDict, Pokemon, ValidationError, pokemon_page):
     class PokemonPage(BaseModel):
-        model_config = ConfigDict(extra='forbid')  
+        model_config = ConfigDict(extra="forbid")
         results: list[Pokemon]
 
     try:
@@ -226,14 +226,11 @@ def _(AnyHttpUrl, BaseModel, raw_detail):
         name: str
         url: AnyHttpUrl
 
-
     class PokemonTypeSlot(BaseModel):
         slot: int
         type: PokemonType
 
-
     class PokemonDetail(BaseModel):
-
         id: int
         name: str
         height: int
@@ -241,7 +238,6 @@ def _(AnyHttpUrl, BaseModel, raw_detail):
         base_experience: int | None = None
         types: list[PokemonTypeSlot]
         # abilities: ...
-
 
     parsed_detail = PokemonDetail.model_validate(raw_detail)
     return PokemonDetail, parsed_detail
@@ -256,9 +252,9 @@ def _(parsed_detail):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Simplifying For Collector Use
+    ## Simplifying for graph/properties use
 
-    Pydantic models can preserve the nested API shape, but collector code often needs simpler derived values.
+    Pydantic models can preserve the nested API shape, but collector code often needs simpler derived values for the node/edge properties.
 
     The helper below converts a validated `PokemonDetail` into a compact dictionary that will be easier to use in later sections.
     """)
