@@ -40,9 +40,9 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Introduction
+    ## Learning Goals
 
-    Before we start using OpenHound and DLT lets try to collect data the manual way.
+    Before we start using OpenHound and DLT, let's try to collect data the manual way.
 
     By the end of this section you should be able to:
 
@@ -58,7 +58,7 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ## Collecting Pokemon
-    Lets start with performing manual Pokemon collection using the requests library. We'll limit the amount of Pokemon to a 100. Try running the cells below and inspect the output.
+    Let's start by performing manual Pokemon collection using the requests library. We'll limit the amount of Pokemon to 100. Try running the cells below and inspect the output.
     """)
     return
 
@@ -93,13 +93,13 @@ def _(mo, pokemon_page):
 
     | Field | Value | Description |
     |---|---|---|
-    | `count` | `{pokemon_page["count"]}` | The total amounf of Pokemon in the DB|
-    | `next` | `{pokemon_page["next"]}` | The url to fetch the next page |
-    | `previous` | `{pokemon_page["previous"]}` | The previous page which is None, since this is our first request|
+    | `count` | `{pokemon_page["count"]}` | The total amount of Pokemon in the DB|
+    | `next` | `{pokemon_page["next"]}` | The URL to fetch the next page |
+    | `previous` | `{pokemon_page["previous"]}` | The previous page, which is None since this is our first request|
     | `results` | `{len(pokemon_page["results"])}` records in this page | The amount of records in the current request|
 
 
-    As you may have noticed, the list of results only contains a pokemon name and a URL. We'll want to fetch the Pokemon details later as well.
+    As you may have noticed, the list of results only contains a Pokemon name and a URL. We'll want to fetch the Pokemon details later as well.
     """)
     return
 
@@ -108,7 +108,7 @@ def _(mo, pokemon_page):
 def _(mo):
     mo.md("""
     ## Marimo tricks
-    Did you know you can render the response as interactive Marimo table? Check this out!
+    Did you know you can render the response as an interactive Marimo table? Check this out!
     """)
     return
 
@@ -126,7 +126,7 @@ def _(mo):
 
     Marimo cells are reactive, meaning that when a value or variable changes in one cell, all cells that depend on it are automatically updated.
 
-    Try these changing the following parameters and see what happens when you run the cell again:
+    Try changing the following parameters and see what happens when you run the cell again:
 
     - Change `limit=10` to `limit=100`.
     - Change `offset=0` to `offset=100`.
@@ -140,7 +140,7 @@ def _(mo):
     mo.md("""
     ## Pagination
 
-    PokeAPI uses an offset in order to paginate results. You will have to use the following parameters in order to collect all Pokemeons
+    PokeAPI uses an offset in order to paginate results. You will have to use the following parameters in order to collect all Pokemon.
 
     | Field or parameter | Meaning |
     |---|---|
@@ -152,7 +152,7 @@ def _(mo):
     Example pages:
 
     - First page: `https://pokeapi.co/api/v2/pokemon?limit=10&offset=0`
-    - Second page : `https://pokeapi.co/api/v2/pokemon?limit=10&offset=10`
+    - Second page: `https://pokeapi.co/api/v2/pokemon?limit=10&offset=10`
     """)
     return
 
@@ -180,10 +180,10 @@ def _(requests):
             page = response.json()
             pokemon.extend(
                 page["TODO"]
-            )  # Replace TODO will the field containing the list of pokemon
+            )  # Replace TODO with the field containing the list of Pokemon
             next_url = page[
                 "TODO"
-            ]  # Replace TODO will the field containing the next page
+            ]  # Replace TODO with the field containing the next page
         return pokemon
 
     return (paginate_pokemon,)
@@ -205,7 +205,7 @@ def _(all_pokemon, pl):
 def _(mo):
     mo.md(r"""
     ## Exercise 3
-    We have succesfully collected all Pokemon but are still missing the Pokemon details. Finalize the `collect_pokemon_details` function to collect the pokemon details.
+    We have successfully collected all Pokemon but are still missing the Pokemon details. Finalize the `collect_pokemon_details` function to collect the Pokemon details.
     """)
     return
 
@@ -215,7 +215,7 @@ def _(requests):
     def collect_pokemon_details(pokemon: list) -> list[dict]:
         pokemon_details = []
         for poke in pokemon:
-            # Replace TODO will the field containing the URL for the pokemon details
+            # Replace TODO with the field containing the URL for the Pokemon details
             response = requests.get(poke["TODO"]).json()
             pokemon_details.append(response)
         return pokemon_details
