@@ -9,6 +9,9 @@ def _():
     import dlt
     import marimo as mo
     from dlt.sources.helpers import requests
+    from dlt.sources.helpers.rest_client import RESTClient
+    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from pydantic import AnyHttpUrl, BaseModel, ConfigDict
 
     return dlt, mo, requests
 
