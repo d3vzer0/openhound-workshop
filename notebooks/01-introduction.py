@@ -161,7 +161,7 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ## Exercise 2
-    Try to collect all pokemons in batches of 100 by modifying the paginate_pokemons function. Here is a modified example to get started, fill in the "TODO" placeholders based on the response descriptions mentioned previously.
+    Try to collect all pokemons by creating the paginate_pokemons function. Here is a modified example to get started, fill in the "TODO" placeholders based on the pagination description mentioned previously.
     """)
     return
 
