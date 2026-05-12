@@ -9,7 +9,6 @@ def _():
     import marimo as mo
     import polars as pl
     import requests
-    import json
 
     return mo, pl, requests
 
@@ -241,7 +240,7 @@ def _(mo):
     mo.md(r"""
     ## Wrapping up
 
-    Pagination works differently across APIs and you may have noticed that collecting all Pokemon details may take some time; we need to perform an additional request for each of the 1000+ Pokemnons. Instead of developing custom clients or collectors for every API, DLT provides a built-in RESTClient that automatically handles pagination, rate limiting and parallelization.
+    Pagination works differently across APIs and you may have noticed that collecting all Pokemon details may take some time; we need to perform an additional request for each of the 1000+ Pokemons. Instead of developing custom clients or collectors for every API, DLT provides a built-in RESTClient that automatically handles pagination, rate limiting and parallelization.
 
     Before we re-implement our Pokemon collector, let’s first take a look at data validation. After this introduction, the workshop will continue with the basics of Pydantic to validate API responses.
     """)
