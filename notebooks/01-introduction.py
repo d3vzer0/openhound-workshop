@@ -9,6 +9,7 @@ def _():
     import marimo as mo
     import polars as pl
     import requests
+    import json
 
     return mo, pl, requests
 
@@ -67,7 +68,7 @@ def _(mo):
 def cell_list_pokemon(requests):
     POKEMON_PAGE_URL = "https://pokeapi.co/api/v2/pokemon"
 
-    def list_pokemon(url: str) -> dict:
+    def list_pokemons(url: str) -> dict:
         request = requests.get(
             url,
             params={"limit": 100, "offset": 0},
@@ -75,8 +76,8 @@ def cell_list_pokemon(requests):
         )
         return request.json()
 
-    pokemon_page = list_pokemon(POKEMON_PAGE_URL)
-    return (pokemon_page,)
+    pokemon_page = list_pokemons(POKEMON_PAGE_URL)
+    return POKEMON_PAGE_URL, pokemon_page
 
 
 @app.cell
@@ -85,7 +86,7 @@ def _(pokemon_page):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo, pokemon_page):
     mo.md(f"""
     ## Response summary
@@ -159,10 +160,90 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
-    ## Next up
+    mo.md(r"""
+    ## Exercise 2
+    Try to collect all pokemons in batches of 100 by modifying the paginate_pokemons function. Here is a modified example to get started, fill in the "TODO" placeholders based on the response descriptions mentioned previously.
+    """)
+    return
 
-    After this introduction the workshop will continue with the Pydantic basics; creating models and validators for API responses.
+
+@app.cell
+def _(requests):
+    def paginate_pokemons(url: str) -> list[dict]:
+        pokemon = []
+        next_url = url
+
+        while next_url:
+            response = requests.get(
+                next_url,
+                headers={"User-Agent": "openhound-workshop/0.1"},
+            )
+            page = response.json()
+            pokemon.extend(
+                page["TODO"]
+            )  # Replace TODO will the field containing the list of pokemons
+            next_url = page[
+                "TODO"
+            ]  # Replace TODO will the field containing the next page
+        return pokemon
+
+    return (paginate_pokemons,)
+
+
+@app.cell
+def _(POKEMON_PAGE_URL, paginate_pokemons):
+    all_pokemons = paginate_pokemons(POKEMON_PAGE_URL)
+    return (all_pokemons,)
+
+
+@app.cell(hide_code=True)
+def _(all_pokemons, pl):
+    pl.DataFrame(all_pokemons)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Exercise 3
+    We have succesfully collected all Pokemons but are still missing the Pokemon details. Finalize the `collect_pokemon_details` function to collect the pokemon details.
+    """)
+    return
+
+
+@app.cell
+def _(requests):
+    def collect_pokemon_details(pokemons: list) -> list[dict]:
+        pokemon_details = []
+        for pokemon in pokemons:
+            # Replace TODO will the field containing the URL for the pokemon details
+            response = requests.get(pokemon["TODO"]).json()
+            pokemon_details.append(response)
+        return pokemon_details
+
+    return (collect_pokemon_details,)
+
+
+@app.cell
+def _(all_pokemons, collect_pokemon_details):
+    pokemon_details = collect_pokemon_details(all_pokemons[:2])
+    return (pokemon_details,)
+
+
+@app.cell
+def _(pl, pokemon_details):
+    pl.DataFrame(pokemon_details)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Wrapping up
+
+    Pagination works differently across APIs and you may have noticed that collecting all Pokemon details may take some time; we need to perform an additional request for each of the 1000+ Pokemnons. Instead of developing custom clients or collectors for every API, DLT provides a built-in RESTClient that automatically handles pagination, rate limiting and parallelization.
+
+    Before we re-implement our Pokemon collector, let’s first take a look at data validation. After this introduction, the workshop will continue with the basics of Pydantic to validate API responses.
     """)
     return
 
