@@ -23,6 +23,31 @@ https://pokeapi.co/api/v2/pokemon?limit=10&offset=0
 ```
 
 
+## Container
+You can run Marimo with the OpenCode agent as a container using any container runtime. I use the following .zshrc alias to start the container via Apple Containers. This runs Marimo and OpenCode in a local container and avoids giving the process broad host filesystem access. It still mounts your OpenCode config/state so the agent can use your existing providers. Only use this with notebooks and workspaces you trust.
+
+Warning: OpenCode uses SQLite to maintain state and is not meant to run multiple instances at the same time. Make sure you're only running 1 OpenCode instance.
+
+```
+marimauw() {
+  container run -it --rm \
+    --user "$(id -u):$(id -g)" \
+    -v "$PWD:$PWD" \
+    -e HOME=/home/marimo \
+    -v "$HOME/.config/opencode:/home/marimo/.config/opencode" \
+    -v "$HOME/.local/share/opencode:/home/marimo/.local/share/opencode" \
+    -v "$HOME/.local/state/opencode:/home/marimo/.local/state/opencode" \
+    -v "$HOME/.cache/opencode:/home/marimo/.cache/opencode" \
+    -p 127.0.0.1:2718:2718 \
+    -p 127.0.0.1:3023:3023 \
+    --cpus 4 \
+    --memory 4g \
+    -w "$PWD" \
+    marimo:latest "$@"
+}
+```
+
+
 ## Current Status
 
 This repository is under active development. 
