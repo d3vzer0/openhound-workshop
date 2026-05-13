@@ -30,7 +30,6 @@ def _():
         PreProcContext,
         Progress,
         RESTClient,
-        dlt,
         mo,
         pl,
     )
@@ -71,16 +70,16 @@ def _(mo):
     mo.md("""
     ## What OpenHound adds
 
-    OpenHound standardizes how DLT resources, transformers and sources are used for graph collection and conversion. Here are some of the differences:
+    OpenHound standardizes how DLT resources, transformers, and sources are used for graph collection and conversion. Here are some of the differences:
 
     - Pipeline sources, destinations and configurations are standardized
     - Logging and resource collection failures are handled by OpenHound
     - Pydantic models are included to automatically validate OpenGraph output
-    - OpenHound is able to generate (zensical) documentation for your extension, including graph examples, in/outgoing edges, node icons etc.
-    - Every collector exposes multiple CLI commands and can be run seperately
+    - OpenHound is able to generate useful documentation for your extension, including graph examples, incoming and outgoing edges, node icons, etc.
+    - Every collector exposes multiple CLI commands and can be run separately
     - OpenHound adds standardized lookup functionality using DuckDB
 
-    OpenHound organizes DLT and Pydantic for OpenGraph collection and conversion OpenHound, it does not replace DLT or Pydantic.
+    OpenHound organizes DLT and Pydantic for OpenGraph collection and conversion; it does not replace them.
     """)
     return
 
@@ -88,7 +87,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Collect, preprocess and convert
+    ## Collect, Preprocess, and Convert
 
     Every OpenHound collector follows the same high-level workflow.
 
@@ -148,7 +147,7 @@ def _(mo):
     extension.yaml
     ```
 
-    You won't have to remember this for now, during this workshop we'll create an OpenHound collector as part of this notebook.
+    You won't have to remember this for now. During this workshop, we'll create an OpenHound collector as part of this notebook.
     """)
     return
 
@@ -180,7 +179,7 @@ def _(mo):
     mo.md("""
     ## Defining the source
 
-    The DLT source still look similar to normal DLT code, with the exception that the `@dlt` decorators are replaced with `@app` decorators. This allows the OpenHound framework discover which source/resource/transformer belongs to what `OpenHound` app instance, while at the same time adding custom exception handling/logging during resource collection.
+    The DLT source still looks similar to normal DLT code, with the exception that the `@dlt` decorators are replaced with `@app` decorators. This allows the OpenHound framework to discover which source/resource/transformer belongs to which `OpenHound` app instance, while adding custom exception handling/logging during resource collection.
     """)
     return
 
@@ -220,28 +219,10 @@ def _(app, pokemon_client):
 
 
 @app.cell
-def _(app, dlt, pokemon_client):
-    @app.transformer(
-        table_name="pokemon_details",
-        parallelized=True,
-
-    )
-    def pokemon_details(pokemons: list):
-        @dlt.defer
-        def _get_pokemon_details(_pokemon):
-            return pokemon_client.get(_pokemon["url"]).json()
-
-        for _pokemon in pokemons:
-            yield _get_pokemon_details(_pokemon)
-
-    return (pokemon_details,)
-
-
-@app.cell
-def _(app, pokemon, pokemon_details):
+def _(app, pokemon):
     @app.source(name="poke_api", max_table_nesting=0)
     def source():
-        return pokemon | pokemon_details
+        return pokemon
 
 
     return (source,)
@@ -254,7 +235,7 @@ def _(mo):
 
     The collect phase returns the DLT source from `source.py`.
 
-    How this is different compared to plain DLT:
+    How this differs from plain DLT:
     - You do not manually configure the pipeline in every script. The pipeline is consistent for all collectors
     - The raw collection output goes where the next OpenHound phase expects it
     """)
@@ -274,15 +255,15 @@ def _(CollectContext, DltSource, app, source):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Thats everything needed to start running the OpenHound collection phase. When using the OpenHound CLI, your extension should now be listed as a collector when running:
+    That's everything needed to start running the OpenHound collection phase. When using the OpenHound CLI, your extension should now be listed as a collector when running:
 
     `openhound collect --help`
 
-    And to start collecting Pokemon data to the /tmp/openhound directory:
+    To start collecting Pokemon data to the /tmp/openhound directory:
 
     `openhound collect pokemon /tmp/openhound`
 
-    Since we're running inside of a Marimo notebook, we'll have to run the collection phase manually. The cell below mimicks the behaviour of running the `openhound collect pokemon /tmp/openhound` command
+    Since we're running inside a Marimo notebook, we'll have to run the collection phase manually. The cell below mimics the behavior of running the `openhound collect pokemon /tmp/openhound` command.
     """)
     return
 
@@ -302,7 +283,7 @@ def _(Path, Progress, app, extracted_resources):
 def _(mo):
     mo.md(r"""
     ## Exercise 1: Update the resources/transformers
-    The `poke_api` source is still lacks the Pokemon details transformer and the RESTClient with pagination support. Update the OpenHound resource collectors to match the implementation from the previous section of the workshop (03-dlt.py)
+    The `poke_api` source still lacks the Pokemon details transformer and the RESTClient with pagination support. Update the OpenHound resource collectors to match the implementation from the previous section of the workshop (03-dlt.py).
     """)
     return
 
@@ -333,11 +314,11 @@ def _(mo):
     mo.md("""
     ## Preproc registration
 
-    The preproc function maps DuckDB table names to collected JSONL table names. The example below loads the pokemon_details files into the DuckDB `pokemon_details` table. This data can later be used during the convert phase. The `@app.preproc` decorator also accepts the optional `transformer` parameter. The value should be a reference to a Python function which executes DuckDB SQL queries. More about this later.
+    The preproc function maps DuckDB table names to collected JSONL table names. The example below loads the pokemon_details files into the DuckDB `pokemon_details` table. This data can later be used during the convert phase. The `@app.preproc` decorator also accepts the optional `transformer` parameter. The value should be a reference to a Python function that executes DuckDB SQL queries. More about this later.
 
     Important nuances:
     - Only tables listed here are loaded into the preprocessing DuckDB database
-    - Use `transformer=....` only when you want to apply additional SQL-based transformations.
+    - Use `transformer=...` only when you want to apply additional SQL-based transformations.
     """)
     return
 
@@ -365,7 +346,7 @@ def _(mo):
 
     `openhound preprocess pokemon /tmp/openhound/poke_api`
 
-    If no output path is specified, a `lookup.duckdb` file will be created in the current working directory. Since we're running inside of a Marimo notebook, we'll have to run the preprocessing phase manually. The cell below mimicks the behaviour of running the openhound collect pokemon /tmp/openhound command
+    If no output path is specified, a `lookup.duckdb` file will be created in the current working directory. Since we're running inside a Marimo notebook, we'll have to run the preprocessing phase manually. The cell below mimics the behavior of running the `openhound preprocess pokemon /tmp/openhound/poke_api` command.
     """)
     return
 
@@ -385,7 +366,7 @@ def _(Path, Progress, app):
 def _(mo):
     mo.md(r"""
     ## Exercise 2: Looking up the lookup
-    Marimo allows you to explore data from most common databases. This obiously also includes local DuckDB files. Try connecting to `lookup.duckdb` and see what changes in Marimo (hint: check Marimo variables and datasources)
+    Marimo allows you to explore data from most common databases. This obviously also includes local DuckDB files. Try connecting to `lookup.duckdb` and see what changes in Marimo (hint: check Marimo variables and data sources).
     """)
     return
 
@@ -395,9 +376,9 @@ def _(mo):
     mo.md("""
     ## Transforms
 
-    Optionally, a `transforms.py` contains DuckDB SQL that creates derived and optimized tables that may be useful for lookups during the convert phase.
+    Optionally, `transforms.py` can contain DuckDB SQL that creates derived and optimized tables that may be useful for lookups during the convert phase.
 
-    A Pokemon type transform could look like the cell below, where we create a pokemon_types table with the unnested Pokemon types. Keep transforms small and focused. Transforms should prepare or improve lookup data.
+    A Pokemon type transform could look like the cell below, where we create a pokemon_types table that unnests Pokemon types. Keep transforms small and focused. Transforms should prepare or improve lookup data.
     """)
     return
 
@@ -427,7 +408,7 @@ def _(duckdb):
 def _(mo):
     mo.md(r"""
     ## Exercise 3: Adding transforms
-    Modify the `preproc` phase by adding the `poke_transforms` function as an additional transformer. Now use Marimo to inspect the changes applied to our `lookup.duckdb` database. Can you run a query to find Pokemons with more than 1 type?
+    Modify the `preproc` phase by adding the `poke_transforms` function as an additional transformer. Now use Marimo to inspect the changes applied to our `lookup.duckdb` database. Can you run a query to find Pokemon with more than 1 type?
     """)
     return
 
@@ -437,9 +418,9 @@ def _(mo):
     mo.md("""
     ## LookupManager
 
-    Now that we've implemented the preprocessing phase we need to define a dedicated lookup class that inherits `LookupManager`. All methods implemented by the custom lookup can later be used when we convert our raw resources to OpenGraph nodes and edges.
+    Now that we've implemented the preprocessing phase, we need to define a dedicated lookup class that inherits `LookupManager`. All methods implemented by the custom lookup can later be used when we convert our raw resources to OpenGraph nodes and edges.
 
-    Note: The `schema` should match with our collector name
+    Note: The `schema` should match our collector name
     """)
     return
 
@@ -483,7 +464,7 @@ def _(mo):
     - `_find_single_object`: Returns a single row matching the query or None when no results are found
     - `_find_all_objects`: Returns all rows matching the query or an empty list when no results are found
 
-    Why creating a dedicated LookupManager with pre-defined queries is important:
+    Why a dedicated LookupManager with predefined queries is important:
     - Models do not need to know DuckDB query details
     - Cross-table logic has one clear place
     - Cached methods avoid repeating the same query
@@ -512,9 +493,9 @@ def _(mo):
     - Logs are stored in JSONL format by default
     - Each collector gets its own log file stored as `ext_{name}.log`
     - The base OpenHound framework logs are stored as `openhound.log`
-    - When a specic resource/transformer raises an error, OpenHound will log the exception message and not stop the full pipeline.
+    - When a specific resource/transformer raises an error, OpenHound will log the exception message and not stop the full pipeline.
 
-    We can use Marimo's dataframe render to preview our Pokemon pipeline. Take a look at the openhound and pokemon log preview below!
+    We can use Marimo's dataframe renderer to preview our Pokemon pipeline. Take a look at the openhound and pokemon log previews below!
     """)
     return
 
@@ -545,8 +526,8 @@ def _(mo):
     Key takeaways:
 
     - OpenHound organizes collectors into `collect`, `preproc`, and `convert` phases
-    - There is single OpenHound app and phase registration.
-    - Preprocessing and lookups simplifies cross-table conversion logic
+    - There is a single OpenHound app and phase registration.
+    - Preprocessing and lookups simplify cross-table conversion logic
 
     Next, we will define Pokemon graph nodes, edge kinds, stable IDs, and conversion behavior.
     """)
