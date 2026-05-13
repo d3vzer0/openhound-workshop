@@ -346,7 +346,7 @@ def _(mo):
 
     `openhound preprocess pokemon /tmp/openhound/poke_api`
 
-    If no output path is specified, a `lookup.duckdb` file will be created in the current working directory. Since we're running inside of a Marimo notebook, we'll have to run the preprocessing phase manually. The cell below mimicks the behaviour of running the openhound collect pokemon /tmp/openhound command
+    If no output path is specified, a `lookup.duckdb` file will be created in the current working directory. Since we're running inside of a Marimo notebook, we'll have to run the preprocessing phase manually. The cell below mimicks the behaviour of running the openhound preprocess pokemon /tmp/openhound/pokemon command
     """)
     return
 
