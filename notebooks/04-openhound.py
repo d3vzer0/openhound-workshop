@@ -283,7 +283,7 @@ def _(Path, Progress, app, extracted_resources):
 def _(mo):
     mo.md(r"""
     ## Exercise 1: Update the resources/transformers
-    The `poke_api` source is still lacks the Pokemon details transformer and the RESTClient with pagination support. Update the OpenHound resource collectors to match the implementation from the previous section of the workshop (03-dlt.py)
+    The `poke_api` source is still lacks the Pokemon details transformer. Update the OpenHound resource collectors to match the implementation from the previous section of the workshop (03-dlt.py)
     """)
     return
 
