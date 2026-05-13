@@ -272,7 +272,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The `JSONLinkPaginator` paginator expects the link to the next page to be included in the JSON response. By specifying `next_url_path="next"`, we specify that the URL to the next page can be found in the API response's `next` field.
+    The `JSONLinkPaginator` paginator expects the link to the next page to be included in the JSON response. By setting `next_url_path="next"`, we specify that the URL to the next page can be found in the API response's `next` field.
     """)
     return
 
