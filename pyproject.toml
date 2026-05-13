@@ -15,3 +15,18 @@ dependencies = [
     "polars>=1.40.1",
     "pydantic>=2.13.3",
 ]
+
+[tool.marimo.completion]
+activate_on_typing = true
+
+[tool.marimo.experimental]
+external_agents = true
+
+[tool.marimo.language_servers.pylsp]
+enable_ruff = true
+enable_pyflakes = false
+enable_flake8 = false
+enable_mypy = true
+enabled = false
+enable_pylint = false
+enable_pydocstyle = false
