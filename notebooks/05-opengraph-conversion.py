@@ -28,7 +28,7 @@ def _():
     )
     from openhound.core.preproc import PreProcContext
     from openhound.core.progress import Progress
-    from pydantic import AnyHttpUrl, BaseModel
+    from pydantic import AnyHttpUrl, BaseModel, field_serializer
 
     return (
         AnyHttpUrl,
@@ -51,6 +51,7 @@ def _():
         dlt,
         duckdb,
         field,
+        field_serializer,
         lru_cache,
         mo,
     )
@@ -80,10 +81,11 @@ def _(mo):
     By the end of this section, you should be able to:
 
     - Explain how OpenHound converts DLT resources into OpenGraph output
-    - Modify Pydantic models into OpenHound assets
+    - Convert the Pydantic models into OpenHound assets
+    - Add required node properties for all collected resources
     - Define stable OpenGraph node IDs
-    - Emit edges from an asset model
     - Use `self._lookup` during conversion
+    - Emit edges from an asset model
     """)
     return
 
@@ -139,6 +141,7 @@ def _(
     BaseModel,
     DuckDBPyConnection,
     LookupManager,
+    field_serializer,
     lru_cache,
     name,
 ):
@@ -146,11 +149,17 @@ def _(
         name: str
         url: AnyHttpUrl
 
+        @field_serializer("url")
+        def serialize_url(self, url: AnyHttpUrl) -> str:
+            return str(url)
 
     class PokemonType(BaseModel):
         name: str
         url: AnyHttpUrl
 
+        @field_serializer("url")
+        def serialize_url(self, url: AnyHttpUrl) -> str:
+            return str(url)
 
     class PokemonTypeSlot(BaseModel):
         slot: int
@@ -187,7 +196,7 @@ def _(
             return result
 
 
-    return Pokemon, PokemonLookup, PokemonTypeSlot
+    return PokemonLookup, PokemonTypeSlot
 
 
 @app.cell(hide_code=True)
@@ -211,92 +220,32 @@ def _(duckdb):
 
 
 @app.cell(hide_code=True)
-def _(
-    CollectContext,
-    DltSource,
-    JSONLinkPaginator,
-    PreProcContext,
-    RESTClient,
-    dlt,
-    poke_transforms,
-):
+def _():
     from openhound.core.app import OpenHound
 
     POKEMON_API_BASE_URL = "https://pokeapi.co/api/v2/"
 
     app = OpenHound("pokemon", source_kind="Pokemon", help="OpenGraph collector for PokeAPI")
-
-
-    pokemon_client = RESTClient(
-        base_url=POKEMON_API_BASE_URL,
-        paginator=JSONLinkPaginator(next_url_path="next"),
-    )
-
-    @app.resource(table_name="pokemon")
-    def pokemon():
-        for page in pokemon_client.paginate("pokemon", data_selector="results"):
-            yield page
-
-
-    @app.transformer(
-        table_name="pokemon_details",
-        parallelized=True,
-
-    )
-    def pokemon_details(pokemons: list):
-        @dlt.defer
-        def _get_pokemon_details(_pokemon):
-            return pokemon_client.get(_pokemon["url"]).json()
-
-        for _pokemon in pokemons:
-            yield _get_pokemon_details(_pokemon)
-
-
-    @app.source(name="poke_api", max_table_nesting=0)
-    def source():
-        return pokemon | pokemon_details
-
-
-    @app.collect()
-    def collect(ctx: CollectContext) -> DltSource:
-        return source()
-
-    @app.preproc(transformer=poke_transforms)
-    def preproc(ctx: PreProcContext) -> dict[str, str]:
-        return {
-            "pokemon_details": "pokemon_details",
-        }
-
-
-
-    return app, pokemon, pokemon_client, pokemon_details, source
+    return POKEMON_API_BASE_URL, app
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Start this section of the workshop by collecting and preprocessing the Pokemon dataset again using the cells below.
-    """)
+def _():
+    # app.collector(
+    #     output_path=Path("/tmp/openhound"),
+    #     resources=[], 
+    #     progress=Progress.log,  
+    # )
     return
 
 
-@app.cell
-def _(Path, Progress, app):
-    app.collector(
-        output_path=Path("/tmp/openhound"),
-        resources=[], 
-        progress=Progress.log,  
-    )
-    return
-
-
-@app.cell
-def _(Path, Progress, app):
-    app.preprocessor(
-        input_path=Path("/tmp/openhound") / app.name,
-        output_file=Path("lookup.duckdb"),
-        progress=Progress.log,
-    )
+@app.cell(hide_code=True)
+def _():
+    # app.preprocessor(
+    #     input_path=Path("/tmp/openhound") / app.name,
+    #     output_file=Path("lookup.duckdb"),
+    #     progress=Progress.log,
+    # )
     return
 
 
@@ -442,7 +391,7 @@ def _(
             height: The height of a Pokemon.
         """
         height: int
-    
+
 
     @app.asset(
         node=NodeDef(
@@ -479,8 +428,6 @@ def _(
                 name=self.name,
                 displayname=self.name,
                 height=self.height,
-                environmentid="pokeapi",
-                pokeapi_id=self.id,
             )
             return PokeNode(properties=properties, kinds=[POKEMON])
 
@@ -621,54 +568,66 @@ def _(mo):
     OpenHound conversion matches assets to source resources by looking at the Pydantic model configured on the resource or transformer.
 
     That means `pokemon_details` must use `columns=PokemonDetail`. During collection, DLT uses this model for validation. During conversion, OpenHound uses it to know that records from the `pokemon_details` table should be converted with the `PokemonDetail` asset.
+
+    First lets re-define our Pokemon (details) collector below.
     """)
     return
 
 
-@app.cell(hide_code=True)
-def _(JSONLinkPaginator, RESTClient):
-    POKEMON_API_BASE_URL = "https://pokeapi.co/api/v2/"
+@app.cell
+def _(
+    CollectContext,
+    DltSource,
+    JSONLinkPaginator,
+    POKEMON_API_BASE_URL,
+    PokemonDetail,
+    PreProcContext,
+    RESTClient,
+    app,
+    dlt,
+    poke_transforms,
+):
     pokemon_client = RESTClient(
         base_url=POKEMON_API_BASE_URL,
         paginator=JSONLinkPaginator(next_url_path="next"),
     )
-    return (pokemon_client,)
 
-
-@app.cell
-def _(Pokemon, app, pokemon_client):
-    @app.resource(table_name="pokemon", columns=Pokemon)
+    @app.resource(table_name="pokemon")
     def pokemon():
         for page in pokemon_client.paginate("pokemon", data_selector="results"):
             yield page
 
-    return (pokemon,)
 
-
-@app.cell
-def _(PokemonDetail, app, dlt, pokemon_client):
     @app.transformer(
         table_name="pokemon_details",
-        columns=PokemonDetail,
         parallelized=True,
-        max_table_nesting=0,
+        columns=PokemonDetail
+
     )
     def pokemon_details(pokemons: list):
         @dlt.defer
-        def get_pokemon_details(pokemon_record):
-            return pokemon_client.get(pokemon_record["url"]).json()
+        def _get_pokemon_details(_pokemon):
+            return pokemon_client.get(_pokemon["url"]).json()
 
-        for pokemon_record in pokemons:
-            yield get_pokemon_details(pokemon_record)
-
-    return (pokemon_details,)
+        for _pokemon in pokemons:
+            yield _get_pokemon_details(_pokemon)
 
 
-@app.cell
-def _(app, pokemon, pokemon_details):
     @app.source(name="poke_api", max_table_nesting=0)
     def source():
         return pokemon | pokemon_details
+
+
+    @app.collect()
+    def collect(ctx: CollectContext) -> DltSource:
+        return source()
+
+    @app.preproc(transformer=poke_transforms)
+    def preproc(ctx: PreProcContext) -> dict[str, str]:
+        return {
+            "pokemon_details": "pokemon_details",
+        }
+
 
     return (source,)
 
@@ -678,30 +637,21 @@ def _(mo):
     mo.md("""
     ## Convert phase registration
 
-    The `@app.convert` decorator registers the conversion phase. If any asset uses `self._lookup`, pass the lookup class to the decorator.
+    The `@app.convert` decorator registers the conversion phase. Any additional lookup classess are added via the decorator's `lookup=` parameter.
 
-    The convert function returns two values:
+    The convert function should return two values:
 
-    - The DLT source whose collected tables should be converted
-    - An extras dictionary made available to every asset as `self._extras`
-
-    Here we pass a stable `environmentid` through extras so every emitted Pokemon node belongs to the same PokeAPI environment.
+    - The original DLT source which collected tables should be converted
+    - An extras dictionary made available to every asset via `self._extras`
     """)
     return
 
 
 @app.cell
-def _(
-    ConvertContext,
-    DltSource,
-    POKEAPI_ENVIRONMENT_ID,
-    PokemonLookup,
-    app,
-    source,
-):
-    @app.convert(lookup=PokemonLookup)
+def _(ConvertContext, DltSource, app, source):
+    @app.convert()
     def convert(ctx: ConvertContext) -> DltSource:
-        return source(), {"environmentid": POKEAPI_ENVIRONMENT_ID}
+        return source(), {}
 
     return
 
@@ -709,61 +659,63 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The extension should now be listed as a converter when running:
+    ## Exercise 4: Converting to OpenGraph
+    Take a look at the convert function above. Are we missing anything? After adding your changes, the extension should now be listed as a converter when running:
 
     `openhound convert --help`
 
     To convert collected Pokemon data from `/tmp/openhound/pokemon` and write OpenGraph output to `/tmp/openhound/opengraph`:
 
-    `openhound convert pokemon /tmp/openhound/pokemon /tmp/openhound/opengraph --lookup-file lookup.duckdb`
+    `openhound convert pokemon /tmp/openhound/pokemon /tmp/openhound/opengraph`
 
     Since we're running inside a Marimo notebook, we'll call the registered converter directly. This expects the collection and preprocessing phases from section 04 to have completed successfully.
+
+    **Note:** If you don't have access to the collected resources/lookup anymore, disable the cell below and re-run collection/processing.
     """)
+    return
+
+
+@app.cell(disabled=True, hide_code=True)
+def _(Path, Progress, app):
+    app.collector(
+        output_path=Path("/tmp/openhound"),
+        resources=[], 
+        progress=Progress.log,  
+    )
+
+    app.preprocessor(
+        input_path=Path("/tmp/openhound") / app.name,
+        output_file=Path("lookup.duckdb"),
+        progress=Progress.log,
+    )
     return
 
 
 @app.cell
 def _(Path, Progress, app):
-    conversion_load_info = app.converter(
+    app.converter(
         input_path=Path("/tmp/openhound") / app.name,
-        output_path=Path("/tmp/openhound/opengraph"),
+        output_path=Path("./opengraph"),
         lookup_file=Path("lookup.duckdb"),
         progress=Progress.log,
     )
-    conversion_load_info
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Exercise 3: Inspect the OpenGraph output
+    ## Exercise 5: Inspect the OpenGraph output
 
-    After conversion finishes, inspect the generated OpenGraph files.
+    After conversion finishes succesfully, inspect the generated OpenGraph files inside the `./opengraph` directory. You can use the built-in Marimo file browser.
 
     Things to check:
 
-    - Pokemon nodes have stable string IDs
-    - Pokemon nodes include the graph properties you added
+    - Pokemon nodes include the graph properties you want
     - `SharesTypeWith` edges point from one Pokemon node ID to another Pokemon node ID
     - Re-running conversion produces the same node IDs
 
-    If conversion fails because `pokemon_types` is missing, run the section 04 preprocessing phase again and make sure `@app.preproc(transformer=poke_transforms)` is registered.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md("""
-    ## Common mistakes
-
-    - Defining a Pydantic model but forgetting to inherit from `BaseAsset`
-    - Forgetting `@app.asset(...)`
-    - Returning a source from `convert` where the resource has no `columns=...` model
-    - Using `self._lookup` without registering `@app.convert(lookup=PokemonLookup)`
-    - Querying a DuckDB table that was not loaded by `preproc`
-    - Building node IDs directly from raw integers instead of deriving stable string IDs
+    When you're happy with the output, try uploading the output to BloodHound!
     """)
     return
 
@@ -773,13 +725,13 @@ def _(mo):
     mo.md("""
     ## Wrapping up
 
-    You have now seen the full OpenHound collector workflow:
+    You have now implemented the full OpenHound workflow:
 
     - `collect`: API data to raw JSONL
     - `preproc`: raw JSONL to DuckDB lookup data
     - `convert`: raw JSONL plus lookup data to OpenGraph nodes and edges
 
-    In a real collector, the notebook code would be split into `graph.py`, `models/pokemon.py`, `lookup.py`, `source.py`, and `main.py`.
+    Normally the notebook code would be split into multiple files, ex. `graph.py`, `models/pokemon.py`, `lookup.py`, `source.py`, and `main.py`.
     """)
     return
 
