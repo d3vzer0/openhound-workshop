@@ -11,7 +11,7 @@ This repository contains materials (notebooks + slides) for the OpenHound worksh
 | `notebooks/02-pydantic.py` | Pydantic basics and response validation | [![Open in molab](https://molab.marimo.io/molab-shield.svg)](https://molab.marimo.io/github/d3vzer0/openhound-workshop/blob/master/notebooks/02-pydantic.py)|
 | `notebooks/03-dlt.py` | DLT basics and paginated API collection | [![Open in molab](https://molab.marimo.io/molab-shield.svg)](https://molab.marimo.io/github/d3vzer0/openhound-workshop/blob/master/notebooks/03-dlt.py)|
 | `notebooks/04-openhound.py` | OpenHound and the `collect -> preproc -> convert` pipeline| [![Open in molab](https://molab.marimo.io/molab-shield.svg)](https://molab.marimo.io/github/d3vzer0/openhound-workshop/blob/master/notebooks/04-openhound.py)|
-| `notebooks/05-graphs.py` | Defining our graph and converters | |
+| `notebooks/05-opengraph-conversion.py` | Defining our graph and converters | [![Open in molab](https://molab.marimo.io/molab-shield.svg)](https://molab.marimo.io/github/d3vzer0/openhound-workshop/blob/master/notebooks/05-opengraph-conversion.py)|
 | `notebooks/06-agents.py` | Agentic development with OpenHound skills | |
 
 

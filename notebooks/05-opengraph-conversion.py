@@ -95,7 +95,7 @@ def _(mo):
     mo.md("""
     ## Conversion in the OpenHound workflow
 
-    OpenHound conversion uses the same DLT source definition as collection, but with a different purpose. During `collect` the source tells DLT how to fetch raw records. During `convert`, the source tells OpenHound which collected tables should be parsed as OpenHound assets.
+    OpenHound conversion uses the same DLT source definition as collection, but with a different purpose. During `collect`, the source tells DLT how to fetch raw records. During `convert`, the source tells OpenHound which collected tables should be parsed as OpenHound assets.
 
     An OpenHound asset is a Pydantic model with graph behavior:
 
@@ -130,7 +130,7 @@ def _(mo):
     mo.md("""
     ## The OpenHound app
 
-    As before, each collector has exactly one `OpenHound` app instance. This is the object that owns the `collect`, `preproc`, and `convert` phase registrations, as well as the OpenGraph asset definitions. We already included the previous collection/preprocessing logic as part of the notebook that you can extend upon. Don't cheat and use this notebook while you're still finishing section 04-openhound!
+    As before, each collector has exactly one `OpenHound` app instance. This is the object that owns the `collect`, `preproc`, and `convert` phase registrations, as well as the OpenGraph asset definitions. We already included the previous collection/preprocessing logic as part of the notebook that you can build on. If you are still working through section 04-openhound, finish that section before continuing here.
     """)
     return
 
@@ -253,10 +253,10 @@ def _():
 def _(mo):
     mo.md("""
     ## Node and edge kinds
-    Lets start by defining our node and edge kinds.
+    Let's start by defining our node and edge kinds.
     A real collector usually stores kinds as constants in `kinds/nodes.py` and `kinds/edges.py`. For this workshop, we keep the constants as part of the Marimo notebook.
 
-    `POKEMON` is the node kind emitted by our `Pokemon` asset. `SHARES_TYPE_WITH` is an example edge that connects one Pokemon to another Pokemon with a matching type resolved via the lookup database. To avoid conflicts, we suggest to prepend your node/edge values with a clear indicator of its origin. In this case, we add the `Poke_` prefix to both nodes/edges.
+    `POKEMON` is the node kind emitted by our `Pokemon` asset. `SHARES_TYPE_WITH` is an example edge that connects one Pokemon to another Pokemon with a matching type resolved via the lookup database. To avoid conflicts, we recommend prepending your node/edge values with a clear indicator of their origin. In this case, we add the `Poke_` prefix to both nodes/edges.
     """)
     return
 
@@ -315,18 +315,18 @@ def _(mo):
     mo.md(r"""
     ### ID generation
 
-    Each node is uniquely identified by an ID. You'll have to define how to generate a unique, reproducable ID. You can use OpenHound to generate a GUID based on a combination of node properties or re-use the ID from the source (if present).
+    Each node is uniquely identified by an ID. You'll have to define how to generate a unique, reproducible ID. You can use OpenHound to generate a GUID based on a combination of node properties or reuse the ID from the source (if present).
 
-    **Important**: avoid using raw integer IDs, these may not be consistent throughout the platform, can be based on incremented database IDs and/or may collide with nodes from other collectors.
+    **Important**: avoid using raw integer IDs. These may not be consistent throughout the platform, can be based on incremented database IDs, and/or may collide with nodes from other collectors.
     """)
     return
 
 
 @app.cell
-def _(Node, PokemonNodeProperties, dataclass, field):
+def _(Node, PokeNodeProperties, dataclass, field):
     @dataclass
     class PokeNode(Node):
-        properties: PokemonNodeProperties
+        properties: PokeNodeProperties
         kinds: list[str]
         id: str = field(init=False)
 
@@ -344,7 +344,7 @@ def _(Node, PokemonNodeProperties, dataclass, field):
 def _(mo):
     mo.md(r"""
     ## Exercise 1: Fixing the Node ID
-    We didn't follow our own advise and used the PokeAPI ID to generate ID's for our nodes. These IDs are incremented integers and will cause conflicts. Fix the `PokeNode` class by generating a consistent, unique ID for each of our PokeAPI nodes.
+    We didn't follow our own advice and used the PokeAPI ID to generate IDs for our nodes. These IDs are incremented integers and will cause conflicts. Fix the `PokeNode` class by generating a consistent, unique ID for each of our PokeAPI nodes.
     """)
     return
 
@@ -357,7 +357,7 @@ def _(mo):
     The original `PokemonDetail` model validates the raw `pokemon_details` records collected from PokeAPI. OpenHound requires a few additions to convert this data into nodes/edges:
 
     - It inherits `BaseAsset` instead of `BaseModel`
-    - It is decorated with `@app.asset(...)` describing what node and edges are generated by this asset. Think about it this way: what OpenGraph assets can I generate based on a single row from the `pokemon_details` table?
+    - It is decorated with `@app.asset(...)` describing which nodes and edges are generated by this asset. Think about it this way: what OpenGraph assets can I generate based on a single row from the `pokemon_details` table?
     - It implements `as_node`
     - It implements `edges`
 
@@ -378,7 +378,6 @@ def _(
     POKEMON,
     PokeNode,
     PokeNodeProperties,
-    PokemonNode,
     PokemonTypeSlot,
     app,
     dataclass,
@@ -423,7 +422,7 @@ def _(
             return [item.type.name for item in self.types]
 
         @property
-        def as_node(self) -> PokemonNode:
+        def as_node(self) -> PokeNode:
             properties = PokemonProperties(
                 name=self.name,
                 displayname=self.name,
@@ -444,7 +443,7 @@ def _(mo):
     ## Exercise 2: Completing the Pokemon Asset
     The Pokemon asset is still missing a lot of details. We defined PokemonProperties, but what other Pokemon attributes do we want to store as part of the node's properties? And we probably forgot to include a required field somewhere...
 
-    Tip: OpenHound calls `as_node` during conversion, but we can inspect it directly in the notebook. The sample below uses a small PokeAPI-shaped record and validates it with the same `PokemonDetail` asset used by conversion. You can use the cell below to test if your changes to the `PokemonDetail` succesfully parses as a node.
+    Tip: OpenHound calls `as_node` during conversion, but we can inspect it directly in the notebook. The sample below uses a small PokeAPI-shaped record and validates it with the same `PokemonDetail` asset used by conversion. You can use the cell below to test if your changes to `PokemonDetail` successfully parse as a node.
     """)
     return
 
@@ -485,9 +484,9 @@ def _(mo):
     mo.md("""
     ## Lookup during conversion
 
-    In section 04 we created a `pokemon_types` DuckDB table during the `preprocessing` phase. Additionally, we implemented a `PokemonLookup` class with the `pokemon_types` method to find all pokemons belonging to a specific type. We can call this lookup method during conversion using the `self._lookup.pokemon_types`.
+    In section 04, we created a `pokemon_types` DuckDB table during the `preproc` phase. Additionally, we implemented a `PokemonLookup` class with the `pokemon_types` method to find all Pokemon belonging to a specific type. We can call this lookup method during conversion using `self._lookup.pokemon_types(...)`.
 
-    The lookup below finds all other Pokemon with the same type. This is a relatively small example, lookups are often used to resolve group membership, ownership or other relationships that require more complex conditions.
+    The lookup below finds all other Pokemon with the same type. This is a relatively small example. Lookups are often used to resolve group membership, ownership, or other relationships that require more complex conditions.
     """)
     return
 
@@ -497,7 +496,7 @@ def _(mo):
     mo.md("""
     ## Previewing lookup data
 
-    The real conversion phase injects `PokemonLookup` into each asset as `self._lookup`. To preview what data is returned by our `pokemon_types(pokemon_type: str)` lookup method, lets take a look at the cell below. And while we're add it, lets try using some of the built-in Marimo features for interactivity. See what happens when you change the `pokemon_type` drop-down selection.
+    The real conversion phase injects `PokemonLookup` into each asset as `self._lookup`. To preview what data is returned by our `pokemon_types(pokemon_type: str)` lookup method, let's take a look at the cell below. And while we're at it, let's try using some of the built-in Marimo features for interactivity. See what happens when you change the `pokemon_type` drop-down selection.
     """)
     return
 
@@ -536,9 +535,9 @@ def _(PokemonLookup, duckdb_client, select_type):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Exercise 3: Adding  edges
+    ## Exercise 3: Adding edges
 
-    Modify `PokemonDetail.edges` so it creates edges with other Pokemons sharing the same type. Here is an example from another collector to get you started:
+    Modify `PokemonDetail.edges` so it creates edges with other Pokemon sharing the same type. Here is an example from another collector to get you started:
 
     ```python
     @property
@@ -569,7 +568,7 @@ def _(mo):
 
     That means `pokemon_details` must use `columns=PokemonDetail`. During collection, DLT uses this model for validation. During conversion, OpenHound uses it to know that records from the `pokemon_details` table should be converted with the `PokemonDetail` asset.
 
-    First lets re-define our Pokemon (details) collector below.
+    First, let's redefine our Pokemon details collector below.
     """)
     return
 
@@ -637,11 +636,11 @@ def _(mo):
     mo.md("""
     ## Convert phase registration
 
-    The `@app.convert` decorator registers the conversion phase. Any additional lookup classess are added via the decorator's `lookup=` parameter.
+    The `@app.convert` decorator registers the conversion phase. Any additional lookup classes are added via the decorator's `lookup=` parameter.
 
     The convert function should return two values:
 
-    - The original DLT source which collected tables should be converted
+    - The DLT source whose collected tables should be converted
     - An extras dictionary made available to every asset via `self._extras`
     """)
     return
@@ -670,7 +669,7 @@ def _(mo):
 
     Since we're running inside a Marimo notebook, we'll call the registered converter directly. This expects the collection and preprocessing phases from section 04 to have completed successfully.
 
-    **Note:** If you don't have access to the collected resources/lookup anymore, disable the cell below and re-run collection/processing.
+    **Note:** If you don't have access to the collected resources/lookup anymore, disable the cell below and rerun collection/preprocessing.
     """)
     return
 
@@ -707,7 +706,7 @@ def _(mo):
     mo.md("""
     ## Exercise 5: Inspect the OpenGraph output
 
-    After conversion finishes succesfully, inspect the generated OpenGraph files inside the `./opengraph` directory. You can use the built-in Marimo file browser.
+    After conversion finishes successfully, inspect the generated OpenGraph files inside the `./opengraph` directory. You can use the built-in Marimo file browser.
 
     Things to check:
 
@@ -731,7 +730,7 @@ def _(mo):
     - `preproc`: raw JSONL to DuckDB lookup data
     - `convert`: raw JSONL plus lookup data to OpenGraph nodes and edges
 
-    Normally the notebook code would be split into multiple files, ex. `graph.py`, `models/pokemon.py`, `lookup.py`, `source.py`, and `main.py`.
+    Normally the notebook code would be split into multiple files, e.g., `graph.py`, `models/pokemon.py`, `lookup.py`, `source.py`, and `main.py`.
     """)
     return
 
