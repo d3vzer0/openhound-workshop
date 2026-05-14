@@ -225,13 +225,31 @@ def _(mo):
 
     After the agent modifies this notebook, review the changes before accepting them:
 
-    - Did it read `notebooks/section-05/pokeapi.md`?
+    - Did it read `notebooks/section-06/pokeapi.md`?
+    - Did it use the OpenHound skill?
     - Did it add only the requested resource(s)?
-    - Are new node IDs stable strings rather than raw integers?
-    - Do new nodes set `environmentid`?
     - Do new `NodeDef(...)` and `EdgeDef(...)` declarations match the emitted graph output?
-    - Did validation run successfully?
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Congrats! Thats it for now.
+    Here is a picture of Charmander, just for you.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.image("https://upload.wikimedia.org/wikipedia/en/5/56/Charmander.png")
+    return
+
+
+@app.cell
+def _():
     return
 
 
