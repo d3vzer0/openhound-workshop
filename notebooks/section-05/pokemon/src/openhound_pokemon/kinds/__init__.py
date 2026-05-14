@@ -1,0 +1,1 @@
+"""Pokemon graph kind constants."""

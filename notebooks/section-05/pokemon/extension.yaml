@@ -1,0 +1,6 @@
+name: pokemon
+version: 0.1.0
+type: local
+description: OpenGraph collector for PokeAPI Pokemon data.
+credentials: []
+parameters: []
