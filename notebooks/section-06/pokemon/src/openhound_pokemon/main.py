@@ -8,7 +8,7 @@ from openhound_pokemon.lookup import PokemonLookup
 from openhound_pokemon.transforms import transforms
 
 
-app = OpenHound("pokemon", source_kind="Pokemon", help="OpenGraph collector for PokeAPI")
+app = OpenHound("pokeapi", source_kind="Pokemon", help="OpenGraph collector for PokeAPI")
 
 
 @app.collect()

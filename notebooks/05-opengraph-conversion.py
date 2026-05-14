@@ -1,3 +1,15 @@
+# /// script
+# requires-python = ">=3.14"
+# dependencies = [
+#     "marimo>=0.23.6",
+    # "dlt>=1.26.0",
+    # "duckdb>=1.5.2",
+    # "openhound>=0.1.4",
+    # "polars>=1.40.1",
+    # "pyarrow>=24.0.0",
+    # "pydantic>=2.13.3",
+# ]
+# ///
 import marimo
 
 __generated_with = "0.23.6"

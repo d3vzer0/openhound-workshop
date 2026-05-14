@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from openhound.core.asset import BaseAsset, EdgeDef, NodeDef
-from openhound.core.models.entries import Edge, EdgePath
+from openhound.core.models.entries_dataclass import Edge, EdgePath
 
 from openhound_pokemon.graph import (
     PokeNode,
