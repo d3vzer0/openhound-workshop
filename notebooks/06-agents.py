@@ -19,7 +19,7 @@ __generated_with = "0.23.6"
 app = marimo.App(width="medium")
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     from dataclasses import dataclass, field
     from pathlib import Path
