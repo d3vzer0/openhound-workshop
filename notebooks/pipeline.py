@@ -1,3 +1,17 @@
+# /// script
+# requires-python = ">=3.14"
+# dependencies = [
+#     "dlt==1.26.0",
+#     "marimo>=0.23.6",
+#     "openhound==0.1.4",
+#     "pydantic==2.13.3",
+#     "openhound-pokemon==0.1.0",
+#     "duckdb==1.5.2",
+#     "polars==1.40.1",
+# ]
+# [tool.uv.sources]
+# openhound-pokemon = { path = "./section-06/pokemon", editable = true }
+# ///
 import marimo
 
 __generated_with = "0.23.4"
