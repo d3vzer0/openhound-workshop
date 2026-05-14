@@ -8,6 +8,7 @@ ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV PATH="/app/.venv/bin:$PATH"
 
+RUN apt-get update && apt-get install git -y
 COPY --from=node /usr/local /usr/local
 COPY pyproject.toml uv.lock ./
 
