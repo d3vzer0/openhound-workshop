@@ -8,6 +8,8 @@
     # "polars>=1.40.1",
     # "pyarrow>=24.0.0",
     # "pydantic>=2.13.3",
+    # "requests>=2.34.1",
+    # "polars>=1.40.1"
 # ]
 # ///
 import marimo

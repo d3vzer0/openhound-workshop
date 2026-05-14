@@ -5,7 +5,9 @@
 #     "marimo>=0.23.6",
 #     "openhound==0.1.4",
 #     "pydantic==2.13.3",
-#     "openhound-pokemon",
+#     "openhound-pokemon==0.1.0",
+#     "duckdb==1.5.2",
+#     "polars==1.40.1",
 # ]
 # [tool.uv.sources]
 # openhound-pokemon = { path = "./section-06/pokemon", editable = true }
@@ -13,7 +15,6 @@
 
 import marimo
 
-# ///
 __generated_with = "0.23.6"
 app = marimo.App(width="medium")
 
@@ -23,7 +24,7 @@ def _():
     from dataclasses import dataclass, field
     from pathlib import Path
     from openhound.core.lookup import LookupManager
-
+    import polars as pl
     import dlt
     import marimo as mo
     from openhound_pokemon.main import app
@@ -41,7 +42,7 @@ def _():
     from functools import lru_cache
 
 
-    return Path, Progress, app, mo
+    return Path, Progress, app, mo, pl
 
 
 @app.cell(hide_code=True)
@@ -80,9 +81,9 @@ def _(mo):
 
     A useful workflow for this notebook:
 
-    - Pick one graph question, such as "which species does this Pokemon belong to?"
-    - Find the relevant endpoint in `notebooks/section-05/pokeapi.md`
-    - Ask the agent to add only the needed resource, model, node and edge
+    - Pick one graph question, such as "Which games does this Pokemon appear in?"
+    - Find the relevant endpoint in `./section-06/pokeapi.md`
+    - Ask the agent to add only the needed resource, model, node and edges
     - Ask the agent to avoid unrelated refactors
     - Ask the agent to validate the notebook before finishing
     """)
@@ -94,16 +95,15 @@ def _(mo):
     mo.md("""
     ## API documentation
 
-    The PokeAPI endpoint documentation is available locally at `notebooks/section-05/pokeapi.md`
+    The PokeAPI endpoint documentation is available locally at `./section-06/pokeapi.md`
 
     Useful Pokemon-related endpoints include:
 
-    - `pokemon-species`
-    - `ability`
-    - `pokemon-form`
-    - `pokemon/{id or name}/encounters`
-    - `stat`
-    - `type`
+    - `Items`
+    - `Games`
+    - `Encunters`
+    - `Locations`
+    - `Evolution`
 
     The agent should read the relevant section from the markdown file before changing any code and refer to the openhound skill for any openhound-related changes.
     """)
@@ -118,11 +118,13 @@ def _(mo):
     Use this as a starting point and adjust the goal for the resource you want to add:
 
     ```text
-    You are working on a Pokemon graph database. The current workbook uses OpenHound to collect basic pokemon details from the PokeAPI service. OpenHound converts these raw resources into nodes and edges for BloodHound/OpenGraph.
+    You are working on a creating Pokemon graph database. The current Pokemon extension for OpenHound collects pokemon details from the PokeAPI service. OpenHound converts these raw resources into nodes and edges for BloodHound/OpenGraph.
 
     The current implementation only collects the basic details about a Pokemon. I want to extend the graph by collecting more relevant resources.
 
-    Use the local PokeAPI documentation in `notebooks/section-05/pokeapi.md`.
+    Context:
+    - The PokeAPI documentation can be found in `./notebooks/section-06/pokeapi.md`
+    - The Pokemon OpenHound extension code is located at `./notebooks/section-06/pokemon/src`
 
     Goal:
     Add Pokemon Games collection and graph conversion.
@@ -145,29 +147,15 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
-    ## Starter collector
-
-    The rest of this notebook the same minimal of the Pokemon collector from section 05. It collects Pokemon details and converts each detail record into one `Poke_Pokemon` node.
-
-    The agent's job is to extend it with one additional PokeAPI resource and the corresponding OpenGraph output.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""
-    ## Optional execution cells
+    ## Collect data
 
-    These cells are disabled by default. Enable them only when you want to run the collector end to end.
+    Run the collection pipeline when anything changed to the resource collection components.
 
     The equivalent CLI commands are:
 
     ```bash
     openhound collect pokemon /tmp/openhound
-    openhound preprocess pokemon /tmp/openhound/pokemon
-    openhound convert pokemon /tmp/openhound/pokemon ./opengraph
     ```
     """)
     return
@@ -180,7 +168,41 @@ def _(Path, Progress, app):
         resources=[],
         progress=Progress.log,
     )
+    return
 
+
+@app.cell
+def _(pl):
+    poke_details_path = "/tmp/openhound/pokeapi/pokemon_details/"
+    log_preview_df = pl.scan_ndjson(poke_details_path).head(100).collect()
+    return (log_preview_df,)
+
+
+@app.cell
+def _(log_preview_df):
+    log_preview_df
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Convert data
+
+    Run the conversion pipeline when anything changed to the resource conversion components.
+
+    The equivalent CLI commands are:
+
+    ```bash
+    openhound preprocess pokemon /tmp/openhound/pokemon
+    openhound convert pokemon /tmp/openhound/pokemon ./opengraph
+    ```
+    """)
+    return
+
+
+@app.cell
+def _(Path, Progress, app):
     app.preprocessor(
         input_path=Path("/tmp/openhound") / app.name,
         output_file=Path("lookup.duckdb"),
